@@ -4,14 +4,16 @@ namespace App\Database;
 
 use App\Contracts\DatabaseConnectionInterface;
 use App\Exception\DatabaseConnexionException;
-use PDO;
-use PDOException;
+use mysqli;
+use mysqli_driver;
+use mysqli_sql_exception;
+use Throwable;
 
-class PDOConnection extends AbstractConnection implements DatabaseConnectionInterface
+class MySQLiConnection extends AbstractConnection implements DatabaseConnectionInterface
 {
 
+
     const REQUIRED_CONNECTION_KEYS = [
-        'driver',
         'host',
         'db_name',
         'db_username',
@@ -19,20 +21,13 @@ class PDOConnection extends AbstractConnection implements DatabaseConnectionInte
         'default_fetch',
     ];
 
-
     protected function parseCredentials(array $credentials): array
     {
-        $dsn = sprintf(
-            '%s:host=%s;dbname=%s',
-            $credentials['driver'],
-            $credentials['host'],
-            $credentials['db_name']
-        );
-
         return [
-            $dsn,
+            $credentials['host'],
             $credentials['db_username'],
             $credentials['db_user_password'],
+            $credentials['db_name'],
         ];
     }
 
@@ -41,24 +36,24 @@ class PDOConnection extends AbstractConnection implements DatabaseConnectionInte
      */
     public function connect(): static
     {
+        $driver = new mysqli_driver;
+        $driver->report_mode = MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT;
+
         $credentials = $this->parseCredentials($this->credentials);
 
         try {
-            $this->connection = new PDO(...$credentials);
-            $this->connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-            $this->connection->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, $this->credentials['default_fetch']);
-        } catch (PDOException $e) {
+            $this->connection = new mysqli(...$credentials);
+            $this->connection->set_charset('utf8mb4');
+            $this->connection->options(MYSQLI_OPT_INT_AND_FLOAT_NATIVE, 1);
+        } catch (Throwable $e) {
             throw new DatabaseConnexionException($e->getMessage(), $this->credentials, 500);
-
         }
 
         return $this;
     }
 
-    public function getConnection(): PDO
+    public function getConnection(): mysqli
     {
-
         return $this->connection;
-
     }
 }
