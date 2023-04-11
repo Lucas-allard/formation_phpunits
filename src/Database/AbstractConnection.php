@@ -30,4 +30,6 @@ abstract class AbstractConnection
 
         return count(array_intersect(static::REQUIRED_CONNECTION_KEYS, array_keys($this->credentials))) === count(static::REQUIRED_CONNECTION_KEYS);
     }
+
+    abstract protected function parseCredentials(array $credentials): array;
 }

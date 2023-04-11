@@ -2,8 +2,11 @@
 
 namespace App\Units;
 
+use App\Contracts\DatabaseConnectionInterface;
 use App\Database\PDOConnection;
 use App\Exception\MissingArgumentException;
+use App\Exception\NotFoundException;
+use App\Helpers\Config;
 use PHPUnit\Framework\TestCase;
 
 class DatabaseConnectionTest extends TestCase
@@ -22,19 +25,36 @@ class DatabaseConnectionTest extends TestCase
 
     /**
      * @throws MissingArgumentException
+     * @throws NotFoundException
      */
     public function testItCanConnectToDatabaseWithPdoApi()
     {
 
-        $credentials = [
-            'driver' => 'mysql',
-            'host' => 'localhost',
-            'db_name' => 'test',
-
-        ];
+        $credentials = $this->getCredentials('pdo');
         $pdoHandler = (new PDOConnection($credentials))->connect();
-        self::assertNotNull($pdoHandler);
+        self::assertInstanceOf(DatabaseConnectionInterface::class, $pdoHandler);
 
+        return $pdoHandler;
+    }
+
+    /**
+     * @depends testItCanConnectToDatabaseWithPdoApi
+     * @param DatabaseConnectionInterface $handler
+     */
+    public function testItIsAValidPdoConnection(DatabaseConnectionInterface $handler)
+    {
+        self::assertInstanceOf(\PDO::class, $handler->getConnection());
+    }
+
+    /**
+     * @throws NotFoundException
+     */
+    private function getCredentials(string $type): array
+    {
+        return array_merge(
+            Config::get('database', $type),
+            ['db_name' => 'bug_app_testing']
+        );
     }
 
 }
