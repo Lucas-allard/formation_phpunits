@@ -21,7 +21,6 @@ class ExceptionHandler
         } else {
             echo 'Something went wrong';
         }
-        exit();
     }
 
     /**
