@@ -1,0 +1,11 @@
+2023-04-20 11:22:23 - Level: info - Message: new bug report created - Context: {"id":1,"type":"Audio"}
+2023-04-20 11:22:23 - Level: info - Message: bug report updated - Context: {"id":1,"type":"Audio"}
+2023-04-20 11:22:23 - Level: info - Message: bug report deleted - Context: {"id":1,"type":"Audio"}
+2023-04-20 11:22:32 - Level: info - Message: new bug report created - Context: {"id":2,"type":"Audio"}
+2023-04-20 11:22:32 - Level: info - Message: bug report updated - Context: {"id":2,"type":"Audio"}
+2023-04-20 11:22:32 - Level: info - Message: bug report deleted - Context: {"id":2,"type":"Audio"}
+2023-04-20 11:22:35 - Level: info - Message: new bug report created - Context: {"id":3,"type":"Audio"}
+2023-04-20 11:22:35 - Level: info - Message: bug report updated - Context: {"id":3,"type":"Audio"}
+2023-04-20 11:22:35 - Level: info - Message: bug report deleted - Context: {"id":3,"type":"Audio"}
+2023-04-20 13:56:04 - Level: info - Message: new bug report created - Context: {"id":4,"type":"video player"}
+2023-04-20 13:56:09 - Level: info - Message: bug report deleted - Context: {"id":4,"type":"video player"}

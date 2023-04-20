@@ -1,6 +1,7 @@
 <?php
 
 return [
+
     'pdo' => [
         'driver' => 'mysql',
         'host' => 'localhost',

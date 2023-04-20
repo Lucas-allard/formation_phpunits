@@ -1,33 +1,27 @@
 <?php
 
-namespace App\Units;
+declare(strict_types = 1);
+
+namespace Tests\Units;
+
 
 use App\Helpers\App;
-use Exception;
 use PHPUnit\Framework\TestCase;
 
 class ApplicationTest extends TestCase
 {
 
-    public function testItCanGetAnInstanceOfTheApplication()
+    public function testItCanGetInstanceOfApplication()
     {
-        $this->assertInstanceOf(
-            App::class,
-            new App()
-        );
+        self::assertInstanceOf(App::class, new App);
     }
 
-    /**
-     * @throws Exception
-     */
-    public function testItCanGetBasicDatasetFromAppClass()
+    public function testItCanGetBasicApplicationDatasetFromAppClass()
     {
-        $app = new App();
-
-
-        self::assertTrue($app->isRunningInConsole());
-        self::assertSame('test', $app->getEnv());
-        self::assertNotNull($app->getLogPath());
-        $this->assertInstanceOf(\DateTime::class, $app->getServerTime());
+        $application = new App;
+        self::assertTrue($application->isRunningFromConsole());
+        self::assertSame('test', $application->getEnvironment());
+        self::assertNotNull($application->getLogPath());
+        self::assertInstanceOf(\DateTime::class, $application->getServerTime());
     }
 }

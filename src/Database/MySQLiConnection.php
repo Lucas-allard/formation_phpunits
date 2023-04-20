@@ -1,17 +1,17 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace App\Database;
 
+
 use App\Contracts\DatabaseConnectionInterface;
-use App\Exception\DatabaseConnexionException;
-use mysqli;
-use mysqli_driver;
-use mysqli_sql_exception;
+use App\Exception\DatabaseConnectionException;
+use mysqli, mysqli_driver;
 use Throwable;
 
 class MySQLiConnection extends AbstractConnection implements DatabaseConnectionInterface
 {
-
 
     const REQUIRED_CONNECTION_KEYS = [
         'host',
@@ -31,24 +31,20 @@ class MySQLiConnection extends AbstractConnection implements DatabaseConnectionI
         ];
     }
 
-    /**
-     * @throws DatabaseConnexionException
-     */
-    public function connect(): static
+    public function connect(): MySQLiConnection
     {
         $driver = new mysqli_driver;
-        $driver->report_mode = MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT;
-
+        $driver->report_mode = MYSQLI_REPORT_STRICT | MYSQLI_REPORT_ERROR;
         $credentials = $this->parseCredentials($this->credentials);
-
-        try {
+        try{
             $this->connection = new mysqli(...$credentials);
-            $this->connection->set_charset('utf8mb4');
-            $this->connection->options(MYSQLI_OPT_INT_AND_FLOAT_NATIVE, 1);
-        } catch (Throwable $e) {
-            throw new DatabaseConnexionException($e->getMessage(), $this->credentials, 500);
+        }catch (Throwable $exception){
+            throw new DatabaseConnectionException(
+                $exception->getMessage(),
+                $this->credentials,
+                500
+            );
         }
-
         return $this;
     }
 

@@ -1,36 +1,29 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace App\Helpers;
 
+
 use App\Database\MySQLiConnection;
-use App\Database\PDOConnection;
-use App\Database\QueryBuilder;
-use App\Exception\DatabaseConnexionException;
-use App\Exception\MissingArgumentException;
-use App\Exception\NotFoundException;
 use App\Database\MySQLiQueryBuilder;
+use App\Database\PDOConnection;
 use App\Database\PDOQueryBuilder;
+use App\Database\QueryBuilder;
+use App\Exception\DatabaseConnectionException;
 
 class DbQueryBuilderFactory
 {
 
-    /**
-     * @throws NotFoundException
-     * @throws MissingArgumentException
-     * @throws DatabaseConnexionException
-     */
     public static function make(
-        string $crendentialFile = 'database',
+        string $credentialFile = 'database',
         string $connectionType = 'pdo',
-        array  $options = []
+        array $options = []
     ): QueryBuilder
     {
-        $credentials = array_merge(
-            Config::get($crendentialFile, $connectionType),
-            $options
-        );
-
-        switch ($connectionType) {
+        $connection = null;
+        $credentials = array_merge(Config::get($credentialFile, $connectionType), $options);
+        switch ($connectionType){
             case 'pdo':
                 $connection = (new PDOConnection($credentials))->connect();
                 return new PDOQueryBuilder($connection);
@@ -40,7 +33,11 @@ class DbQueryBuilderFactory
                 return new MySQLiQueryBuilder($connection);
                 break;
             default:
-                throw new NotFoundException('Connection type not found', ['type' => $connectionType]);
+                throw new DatabaseConnectionException(
+                    "Connection type is not recognize internally", [
+                       'type' => $connectionType
+                    ]
+                );
         }
     }
 }

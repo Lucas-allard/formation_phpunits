@@ -1,48 +1,36 @@
 <?php
-
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace App\Helpers;
 
 use App\Exception\NotFoundException;
-use Throwable;
 
 class Config
 {
 
-    /**
-     * @throws NotFoundException
-     */
     public static function get(string $filename, string $key = null)
     {
         $fileContent = self::getFileContent($filename);
         if($key === null){
             return $fileContent;
         }
-        return $fileContent[$key] ?? [];
-
+        return isset($fileContent[$key]) ? $fileContent[$key] : [];
     }
 
-    /**
-     * @throws NotFoundException
-     */
-    public static function getFileContent(string $fileName): array
+    public static function getFileContent(string $filename): array
     {
         $fileContent = [];
-
-        try {
-            $filePath = realpath(sprintf(__DIR__ . '/../Configs/%s.php', $fileName));
-
-            if (file_exists($filePath)) {
-                $fileContent = require $filePath;
-            }
-
-        } catch (Throwable $e) {
+        try{
+            $path = realpath(sprintf(__DIR__ . '/../Configs/%s.php', $filename));
+           if(file_exists($path)) {
+               $fileContent = require $path;
+           }
+        }catch (\Throwable $exception){
             throw new NotFoundException(
-                sprintf('Error while reading config file %s', $fileName)
+              sprintf('The specified file: %s was not found', $filename)
             );
         }
-
         return $fileContent;
     }
+
 }

@@ -1,116 +1,79 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace App\Logger;
 
+
 use App\Contracts\LoggerInterface;
-use App\Exception\InvalidArgumentLogLevelArgument;
+use App\Exception\InvalidLogLevelArgument;
 use App\Helpers\App;
-use Exception;
+use ReflectionClass;
 
 class Logger implements LoggerInterface
 {
 
-    /**
-     * @throws Exception
-     */
-    public function emergency(string $message, array $context = []): void
+    public function emergency(string $message, array $context = [])
     {
         $this->addRecord(LogLevel::EMERGENCY, $message, $context);
     }
 
-    /**
-     * @throws Exception
-     */
-    public function alert(string $message, array $context = []): void
+    public function alert(string $message, array $context = [])
     {
         $this->addRecord(LogLevel::ALERT, $message, $context);
     }
 
-    /**
-     * @throws Exception
-     */
-    public function critical(string $message, array $context = []): void
+    public function critical(string $message, array $context = [])
     {
         $this->addRecord(LogLevel::CRITICAL, $message, $context);
     }
 
-    /**
-     * @throws Exception
-     */
-    public function error(string $message, array $context = []): void
+    public function error(string $message, array $context = [])
     {
         $this->addRecord(LogLevel::ERROR, $message, $context);
     }
 
-    /**
-     * @throws Exception
-     */
-    public function warning(string $message, array $context = []): void
+    public function warning(string $message, array $context = [])
     {
         $this->addRecord(LogLevel::WARNING, $message, $context);
     }
 
-    /**
-     * @throws Exception
-     */
-    public function notice(string $message, array $context = []): void
+    public function notice(string $message, array $context = [])
     {
         $this->addRecord(LogLevel::NOTICE, $message, $context);
     }
 
-    public function info(string $message, array $context = []): void
+    public function info(string $message, array $context = [])
     {
         $this->addRecord(LogLevel::INFO, $message, $context);
     }
 
-    /**
-     * @throws Exception
-     */
-    public function debug(string $message, array $context = []): void
+    public function debug(string $message, array $context = [])
     {
         $this->addRecord(LogLevel::DEBUG, $message, $context);
     }
 
-    /**
-     * @throws Exception
-     */
-    public function log(string $level, string $message, array $context = []): void
+    public function log(string $level, string $message, array $context = [])
     {
-
-        if (!in_array($level, LogLevel::getLevels())) {
-            throw new InvalidArgumentLogLevelArgument($level, LogLevel::getLevels());
+        $object = new ReflectionClass(LogLevel::class);
+        $validLogLevelsArray = $object->getConstants();
+        if(!in_array($level, $validLogLevelsArray)){
+            throw new InvalidLogLevelArgument($level, $validLogLevelsArray);
         }
         $this->addRecord($level, $message, $context);
     }
 
-    /**
-     * @throws Exception
-     */
-    public function addRecord(string $level, string $message, array $context = []): void
+    private function addRecord(string $level, string $message, array $context = [])
     {
-        $app = new App();
-
-        $date = $app->getServerTime()->format('Y-m-d H:i:s');
-
-        $env = $app->getEnv();
-
-        $logPath = $app->getLogPath();
-
+        $application = new App;
+        $date = $application->getServerTime()->format('Y-m-d H:i:s');
+        $logPath = $application->getLogPath();
+        $env = $application->getEnvironment();
         $details = sprintf(
-            "[%s] - Level: %s - Message: %s - Context: %s",
-            $date,
-            $level,
-            $message,
-            json_encode($context),
+            "%s - Level: %s - Message: %s - Context: %s", $date, $level, $message, json_encode($context)
         ).PHP_EOL;
 
-        $log = sprintf(
-            "%s/%s-%s.log",
-            $logPath,
-            $env,
-            date('j.n.Y'),
-        );
-
-        file_put_contents($log, $details, FILE_APPEND);
+        $fileName = sprintf("%s/%s-%s.log", $logPath, $env, date("j.n.Y"));
+        file_put_contents($fileName, $details, FILE_APPEND);
     }
 }

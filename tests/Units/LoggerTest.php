@@ -1,73 +1,55 @@
 <?php
 
-namespace App\Units;
+declare(strict_types = 1);
+
+namespace Tests\Units;
+
 
 use App\Contracts\LoggerInterface;
-use App\Exception\InvalidArgumentLogLevelArgument;
+use App\Exception\InvalidLogLevelArgument;
 use App\Helpers\App;
 use App\Logger\Logger;
 use App\Logger\LogLevel;
-use Exception;
 use PHPUnit\Framework\TestCase;
 
 class LoggerTest extends TestCase
 {
 
-    private Logger $logger;
+    /** @var Logger $logger */
+    private $logger;
 
-    protected function setUp(): void
+    public function setUp() : void
     {
-        $this->logger = new Logger();
+        $this->logger = new Logger;
         parent::setUp();
     }
 
-    public function testItImplementLoggerInterface()
+    public function testItImplementsTheLoggerInterface()
     {
-
-        self::assertInstanceOf(
-            LoggerInterface::class,
-            $this->logger
-        );
+        self::assertInstanceOf(LoggerInterface::class, $this->logger);
     }
 
-    /**
-     * @throws Exception
-     */
     public function testItCanCreateDifferentTypesOfLogLevel()
     {
-        $this->logger->emergency('Emergency message');
-        $this->logger->alert('Alert message');
-        $this->logger->log(LogLevel::WARNING, 'Warning message');
+        $this->logger->info('Testing Info logs');
+        $this->logger->error('Testing Error logs');
+        $this->logger->log(LogLevel::ALERT, 'Testing Alert logs');
+        $app = new App;
 
-        $app = new App();
+        $fileName = sprintf("%s/%s-%s.log", $app->getLogPath(), 'test', date("j.n.Y"));
+        self::assertFileExists($fileName);
 
-        $fileName = sprintf(
-            "%s/%s-%s.log",
-            $app->getLogPath(),
-            'test',
-            date('j.n.Y'),
-        );
-
-        $this->assertFileExists($fileName);
-
-        $fileContent = file_get_contents($fileName);
-
-        $this->assertStringContainsString('Emergency message', $fileContent);
-        $this->assertStringContainsString('Alert message', $fileContent);
-        $this->assertStringContainsString(LogLevel::WARNING, $fileContent);
-
+        $contentOfLogFile = file_get_contents($fileName);
+        self::assertStringContainsString('Testing Info logs', $contentOfLogFile);
+        self::assertStringContainsString('Testing Error logs', $contentOfLogFile);
+        self::assertStringContainsString(LogLevel::ALERT, $contentOfLogFile);
         unlink($fileName);
-
-        $this->assertFileNotExists($fileName);
+        self::assertFileNotExists($fileName);
     }
 
-    /**
-     * @throws Exception
-     */
-    public function testItThrowInvalidArgumentExceptionWhenInvalidLogLevelIsPassed()
+    public function testItThrowsInvalidLogLevelArgumentExceptionWhenGivenAWrongLogLevel()
     {
-        self::expectException(InvalidArgumentLogLevelArgument::class);
-
-        $this->logger->log('invalid log level', 'Invalid log level message');
+        self::expectException(InvalidLogLevelArgument::class);
+        $this->logger->log('invalid', 'Testing invalid log level');
     }
 }

@@ -1,54 +1,42 @@
 <?php
+declare(strict_types = 1);
 
-namespace App\Units;
+
+namespace Tests\Units;
 
 
 use App\Database\QueryBuilder;
-use App\Exception\DatabaseConnexionException;
-use App\Exception\InvalidArgumentException;
-use App\Exception\MissingArgumentException;
-use App\Exception\NotFoundException;
 use App\Helpers\DbQueryBuilderFactory;
 use PHPUnit\Framework\TestCase;
 
 class QueryBuilderTest extends TestCase
 {
-    private QueryBuilder $queryBuilder;
 
-    /**
-     * @throws DatabaseConnexionException
-     * @throws NotFoundException
-     * @throws MissingArgumentException
-     */
-    public function setUp(): void
+    /** @var QueryBuilder $queryBuilder */
+    private $queryBuilder;
+
+    public function setUp() : void
     {
         $this->queryBuilder = DbQueryBuilderFactory::make(
-            'database',
-            'mysqli',
-            ['db_name' => 'bug_app_testing']
+            'database', 'pdo', ['db_name' => 'bug_app_testing']
         );
-
         $this->queryBuilder->beginTransaction();
         parent::setUp();
     }
 
-    public function testItCanCreateRecord()
+    public function testItCanCreateRecords()
     {
         $id = $this->insertIntoTable();
         self::assertNotNull($id);
     }
 
-    public function testItCanPerformRowQuery()
+    public function testInCanPerformRawQuery()
     {
         $id = $this->insertIntoTable();
-
-        $result = $this->queryBuilder->raw('SELECT * FROM reports')->get();
+        $result = $this->queryBuilder->raw("SELECT * FROM reports;")->get();
         self::assertNotNull($result);
     }
 
-    /**
-     * @throws InvalidArgumentException
-     */
     public function testItCanPerformSelectQuery()
     {
         $id = $this->insertIntoTable();
@@ -60,67 +48,44 @@ class QueryBuilderTest extends TestCase
             ->first();
 
         self::assertNotNull($result);
-        self::assertSame($id, $result->id);
+        self::assertSame($id, (int) $result->id);
     }
 
-    /**
-     * @throws InvalidArgumentException
-     */
     public function testItCanPerformSelectQueryWithMultipleWhereClause()
     {
         $id = $this->insertIntoTable();
-
         $result = $this->queryBuilder
             ->table('reports')
             ->select('*')
             ->where('id', $id)
-            ->where('report_type', '=', 'Report type 1')
+            ->where('report_type', 'Report Type 1')
             ->runQuery()
             ->first();
-
         self::assertNotNull($result);
-        self::assertSame($id, $result->id);
-        self::assertSame('Report type 1', $result->report_type);
-
+        self::assertSame($id, (int) $result->id);
+        self::assertSame('Report Type 1', $result->report_type);
     }
 
-
-    /**
-     * @throws InvalidArgumentException
-     */
-    public function testItCanFindOneRecordById()
+    public function testItCanFindById()
     {
         $id = $this->insertIntoTable();
-
-        $result = $this->queryBuilder
-            ->table('reports')
-            ->select()
-            ->find($id);
-
+        $result = $this->queryBuilder->table('reports')
+            ->select('*')->find($id);
         self::assertNotNull($result);
-        self::assertSame($id, $result->id);
-        self::assertSame('Report type 1', $result->report_type);
+        self::assertSame($id, (int) $result->id);
+        self::assertSame('Report Type 1', $result->report_type);
     }
 
-    /**
-     * @throws InvalidArgumentException
-     */
-    public function testItCanFindByGivenValue()
+    public function testItCanFindOneByGivenValue()
     {
         $id = $this->insertIntoTable();
-        $result = $this->queryBuilder
-            ->table('reports')
-            ->select()
-            ->findOneBy('report_type', 'Report type 1');
-
+        $result = $this->queryBuilder->table('reports')
+            ->select('*')->findOneBy('report_type', 'Report Type 1');
         self::assertNotNull($result);
-        self::assertSame($id, $result->id);
-        self::assertSame('Report type 1', $result->report_type);
+        self::assertSame($id, (int) $result->id);
+        self::assertSame('Report Type 1', $result->report_type);
     }
 
-    /**
-     * @throws InvalidArgumentException
-     */
     public function testItCanUpdateGivenRecord()
     {
         $id = $this->insertIntoTable();
@@ -131,25 +96,16 @@ class QueryBuilderTest extends TestCase
         self::assertEquals(1, $count);
         $result = $this->queryBuilder->select('*')->find($id);
         self::assertNotNull($result);
-        self::assertSame($id, $result->id);
+        self::assertSame($id, (int) $result->id);
         self::assertSame('Report Type 1 updated', $result->report_type);
     }
-
-    /**
-     * @throws InvalidArgumentException
-     */
-    public function testItCanDeleteGivenRecord()
+    public function testItCanDeleteGivenId()
     {
         $id = $this->insertIntoTable();
-        $count = $this->queryBuilder
-            ->table('reports')
-            ->delete()
-            ->where('id', $id)
-            ->runQuery()
-            ->affected();
+        $count = $this->queryBuilder->table('reports')->delete()
+            ->where('id', $id)->runQuery()->affected();
 
         self::assertEquals(1, $count);
-
         $result = $this->queryBuilder->select('*')->find($id);
         self::assertNull($result);
     }
@@ -157,32 +113,22 @@ class QueryBuilderTest extends TestCase
 
     public function tearDown(): void
     {
-        $this->truncateTables();
-        $this->queryBuilder->rollBack();
+        $this->queryBuilder->rollback();
         parent::tearDown();
     }
 
     /**
-     * @return int
+     * @return mixed
      */
-    public function insertIntoTable(): int
+    private function insertIntoTable(): mixed
     {
         $data = [
-            'report_type' => 'Report type 1',
+            'report_type' => 'Report Type 1',
             'message' => 'This is a dummy message',
-            'email' => 'support@lucasdev',
-            'link' => 'https://lucasdev.com',
+            'email' => 'support@devscreencast',
+            'link' => 'https://link.com',
             'created_at' => date('Y-m-d H:i:s'),
         ];
         return $this->queryBuilder->table('reports')->create($data);
     }
-
-    public function truncateTables(): void
-    {
-        $tables = ['reports'];
-        foreach ($tables as $table) {
-            $this->queryBuilder->raw("DELETE FROM $table");
-        }
-    }
-
 }

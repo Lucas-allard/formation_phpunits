@@ -1,29 +1,19 @@
 <?php
 
+declare(strict_types = 1);
+
+
 namespace App\Logger;
+
 
 class LogLevel
 {
-    public const EMERGENCY = 'emergency';
-    public const ALERT = 'alert';
-    public const CRITICAL = 'critical';
-    public const ERROR = 'error';
-    public const WARNING = 'warning';
-    public const NOTICE = 'notice';
-    public const INFO = 'info';
-    public const DEBUG = 'debug';
-
-    public static function getLevels(): array
-    {
-        return [
-            self::EMERGENCY,
-            self::ALERT,
-            self::CRITICAL,
-            self::ERROR,
-            self::WARNING,
-            self::NOTICE,
-            self::INFO,
-            self::DEBUG,
-        ];
-    }
+    const DEBUG = 'debug';
+    const INFO = 'info';
+    const NOTICE = 'notice';
+    const WARNING = 'warning';
+    const ERROR = 'error';
+    const CRITICAL = 'critical';
+    const ALERT = 'alert';
+    const EMERGENCY = 'emergency';
 }

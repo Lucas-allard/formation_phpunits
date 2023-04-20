@@ -1,11 +1,13 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace App\Database;
 
+
 use App\Contracts\DatabaseConnectionInterface;
-use App\Exception\DatabaseConnexionException;
-use PDO;
-use PDOException;
+use App\Exception\DatabaseConnectionException;
+use PDOException, PDO;
 
 class PDOConnection extends AbstractConnection implements DatabaseConnectionInterface
 {
@@ -19,6 +21,26 @@ class PDOConnection extends AbstractConnection implements DatabaseConnectionInte
         'default_fetch',
     ];
 
+    public function connect(): PDOConnection
+    {
+        $credentials = $this->parseCredentials($this->credentials);
+        try{
+            $this->connection = new PDO(...$credentials);
+            $this->connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $this->connection->setAttribute(
+                PDO::ATTR_DEFAULT_FETCH_MODE,
+                $this->credentials['default_fetch']
+            );
+        }catch (PDOException $exception){
+            throw new DatabaseConnectionException($exception->getMessage(), $this->credentials, 500);
+        }
+        return $this;
+    }
+
+    public function getConnection(): PDO
+    {
+       return $this->connection;
+    }
 
     protected function parseCredentials(array $credentials): array
     {
@@ -29,36 +51,6 @@ class PDOConnection extends AbstractConnection implements DatabaseConnectionInte
             $credentials['db_name']
         );
 
-        return [
-            $dsn,
-            $credentials['db_username'],
-            $credentials['db_user_password'],
-        ];
-    }
-
-    /**
-     * @throws DatabaseConnexionException
-     */
-    public function connect(): static
-    {
-        $credentials = $this->parseCredentials($this->credentials);
-
-        try {
-            $this->connection = new PDO(...$credentials);
-            $this->connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-            $this->connection->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, $this->credentials['default_fetch']);
-        } catch (PDOException $e) {
-            throw new DatabaseConnexionException($e->getMessage(), $this->credentials, 500);
-
-        }
-
-        return $this;
-    }
-
-    public function getConnection(): PDO
-    {
-
-        return $this->connection;
-
+        return [$dsn, $credentials['db_username'], $credentials['db_user_password']];
     }
 }
